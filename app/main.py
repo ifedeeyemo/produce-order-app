@@ -30,7 +30,7 @@ if not creds_dict:
     raise RuntimeError("GOOGLE_APPLICATION_CREDENTIALS path invalid or missing.")
 
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-creds = Credentials.from_service_account_file(creds_dict, scopes=SCOPES)
+creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
 #creds = Credentials.from_service_account_file(GOOGLE_APP_CREDS, scopes=SCOPES)
 gc = gspread.authorize(creds)
 ss = gc.open_by_key(GOOGLE_SPREADSHEET_ID)
