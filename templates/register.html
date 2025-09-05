@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+{% block title %}Register{% endblock %}
+{% block content %}
+<h2>Register</h2>
+
+<form method="post">
+  <!-- Username Field (mandatory) -->
+  <label for="username">Username</label>
+  <input type="text" id="username" name="username" required minlength="6" maxlength="20" placeholder="Enter username">
+
+  <!-- Email Field (optional) -->
+  <label for="email">Email (optional)</label>
+  <input type="email" id="email" name="email" placeholder="Enter email (optional)">
+
+  <!-- Password Field -->
+  <label for="password">Password</label>
+  <input type="password" id="password" name="password" required minlength="6" placeholder="Enter password">
+
+  <!-- Confirm Password Field -->
+  <label for="confirm_password">Confirm Password</label>
+  <input type="password" id="confirm_password" name="confirm_password" required minlength="6"
+    placeholder="Confirm password">
+
+  <button type="submit">Create Account</button>
+</form>
+
+<p>Already have an account? <a href="{{ url_for('login') }}">Login</a>.</p>
+{% endblock %}

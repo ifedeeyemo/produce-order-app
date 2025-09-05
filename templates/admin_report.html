@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+{% block title %}Admin Report{% endblock %}
+{% block content %}
+<h2>All Orders</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Customer</th>
+      <th>Item</th>
+      <th>Qty</th>
+      <th>Unit Price</th>
+      <th>Line Total</th>
+      <th>Created</th>
+      <th>Updated</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for o in orders %}
+    <tr>
+      <td>{{ o.username }}</td>
+      <td>{{ o.item }}</td>
+      <td>{{ o.quantity }}</td>
+      <td>${{ "%.2f"|format(o.unit_price|float) }}</td>
+      <td>${{ "%.2f"|format(o.line_total|float) }}</td>
+      <td>{{ o.created_at }}</td>
+      <td>{{ o.updated_at }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h3>Totals by Customer</h3>
+<table>
+  <thead>
+    <tr>
+      <th>Customer</th>
+      <th>Total</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for email, total in totals_by_customer.items() %}
+    <tr>
+      <td>{{ email }}</td>
+      <td>${{ "%.2f"|format(total) }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+
+</table>
+
+<h3>Grand Total</h3>
+
+<p>
+  <strong>${{ "%.2f"|format(grand_total|default(0)|float) }}</strong>
+
+
+</p>
+
+
+
+
+
+{% endblock %}

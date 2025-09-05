@@ -1,0 +1,28 @@
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Flask instance folder (if any)
+instance/
+
+# Environment variables / secrets
+.env
+
+# VS Code settings
+.vscode/
+launch.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Virtual environment folder
+ProduceOrderAppEnv/
+.venv/
+
+
+excelorderproject-serviceaccount.json
+
+

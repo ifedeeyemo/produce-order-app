@@ -1,0 +1,335 @@
+/* Reduce vertical space around flash messages */
+
+
+
+/* === General Text === */
+body {
+    color: #333333;
+    /* main text color */
+    font-family: Arial, sans-serif;
+    /* clean font */
+    background-color: #f9f9f9;
+    /* optional light background */
+}
+
+/* === Links === */
+a {
+    color: #ff6600;
+    /* custom link color */
+    text-decoration: none;
+    /* remove underline */
+}
+
+a:hover {
+    color: #cc5200;
+    /* darker on hover */
+    text-decoration: underline;
+}
+
+/* === Buttons === */
+button {
+    background-color: #ff6600;
+    /* button background */
+    color: #ffffff;
+    /* button text */
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #cc5200;
+}
+
+/* Optional: small spacing adjustments for buttons inside forms */
+form button {
+    margin-top: 5px;
+
+}
+
+/* === Flash Messages === */
+.flash-container {
+    margin-top: 0px !important;
+    margin-bottom: 15px !important;
+    padding: 0;
+}
+
+.flash-container .alert {
+    margin-top: 0;
+    margin-bottom: 5px;
+    padding: 5px 10px;
+    border-radius: 4px;
+}
+
+/* === Main Container / Order Form === */
+.main-container {
+    margin-top: 10px;
+    /* reduce space below navbar */
+    margin-bottom: 20px;
+}
+
+/* === Tables (for orders, if used) === */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+
+table th {
+    padding: 8px;
+    text-align: left;
+    background-color: #cc5200;
+}
+
+table td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+
+
+}
+
+/* Optional: striped rows */
+table tr:nth-child(even) {
+    background-color: #cc5200;
+}
+
+table tbody tr td.no-stripe {
+    background-color: #ffffff !important;
+}
+
+@media (max-width: 576px) {
+
+    /* Bootstrap XS breakpoint */
+    .table td,
+    .table th {
+        padding: 0.25rem;
+        /* reduce padding on small screens */
+        font-size: 0.9rem;
+        /* slightly smaller text */
+    }
+}
+
+
+.grand-total {
+    display: block;
+    width: 100%;
+    overflow: visible;
+    /* ensures nothing is clipped */
+    white-space: nowrap;
+    /* prevents wrapping/cutting of numbers */
+}
+
+.grand-total h3,
+.grand-total p {
+    margin: 0.2rem 0;
+    font-weight: bold;
+    color: #000;
+    /* ensures visibility */
+}
+
+form.no-border {
+    border: none;
+    /* removes form border */
+    box-shadow: none;
+    /* removes any shadow if present */
+    padding: 0;
+    /* optional, remove padding if needed */
+    margin: 0;
+    /* optional */
+}
+
+table.no-border {
+    border: none;
+}
+
+
+.navbar-logo {
+    height: auto;
+    /* adjust size */
+    width: 150px;
+    /* maintain aspect ratio */
+    border: none;
+    /* remove border */
+    background-color: white;
+    /* ensure transparent background */
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .navbar-logo {
+        width: 60px;
+        /* Reduce height for tablets/mobiles */
+        margin-right: 10px;
+        /* spacing from toggler/menu */
+    }
+}
+
+@media (max-width: 480px) {
+    .navbar-logo {
+        width: 40px;
+        /* Smallest height for phones */
+        margin-right: 5px;
+    }
+}
+
+
+/* --------------------
+   BUTTON STYLES
+-------------------- */
+button,
+.btn {
+    background-color: #4CAF50;
+    /* Primary green */
+    color: #FFFFFF;
+    /* White text */
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
+
+button:hover,
+.btn:hover {
+    background-color: #45A049;
+    /* Darker green on hover */
+}
+
+/* Secondary/cancel buttons */
+.btn-secondary {
+    background-color: #A9A9A9;
+    /* Neutral gray */
+    color: #FFFFFF;
+}
+
+.btn-secondary:hover {
+    background-color: #8FBC8F;
+    /* Muted green hover */
+}
+
+/* --------------------
+   TABLE STYLES
+-------------------- */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+}
+
+/* Table header */
+thead th {
+    background-color: #2E7D32;
+    /* Forest green */
+    color: #FFFFFF;
+    padding: 10px;
+    text-align: left;
+}
+
+/* Table body rows */
+tbody tr {
+    background-color: #FFFFFF;
+    /* Default row white */
+}
+
+tbody tr:nth-child(even) {
+    background-color: #E8F5E9;
+    /* Light green alternate row */
+}
+
+/* Row hover effect */
+tbody tr:hover {
+    background-color: #C8E6C9;
+    /* Slightly darker green on hover */
+}
+
+/* Table cell padding */
+td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #ddd;
+    color: #333333;
+    /* Dark text for readability */
+}
+
+.navbar-nav .nav-link {
+    color: #2E7D32;
+    /* Default forest green */
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover {
+    color: #4CAF50;
+    /* Lighter green on hover */
+}
+
+.navbar-nav .nav-link.active {
+    color: #4CAF50;
+    /* Current page */
+    font-weight: 600;
+}
+
+/* --------------------
+   OTHER ANCHOR TAGS
+-------------------- */
+a {
+    color: #333333;
+    /* Default dark gray */
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: #4CAF50;
+    /* Primary green hover */
+    text-decoration: underline;
+    /* Optional hover underline */
+}
+
+/* --------------------
+   HEADINGS
+-------------------- */
+h2 {
+    color: #2E7D32;
+    /* Dark forest green */
+    font-weight: 700;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+h3 {
+    color: #4CAF50;
+    /* Medium fresh green */
+    font-weight: 600;
+    margin-top: 15px;
+    margin-bottom: 8px;
+}
+
+/* Optional: underline for h2 headings */
+h2::after {
+    content: "";
+    display: block;
+    width: 50px;
+    height: 3px;
+    background-color: #E8F5E9;
+    /* Light green */
+    margin-top: 5px;
+    border-radius: 2px;
+}
+
+select {
+    background-color: #fff;
+    /* select box background */
+    color: #000;
+    /* text color */
+    border: 1px solid #ccc;
+}
+
+option:checked {
+    background-color: #C8E6C9;
+    /* selected option background */
+    color: #000;
+}

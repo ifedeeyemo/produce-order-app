@@ -1,0 +1,75 @@
+{% extends "layout.html" %}
+{% block title %}My Orders{% endblock %}
+{% block content %}
+<h2>Create Order</h2>
+<form method="post" action="{{ url_for('create_order') }}" class="no-border">
+  <label>Item
+    <select name="item" id="item" required>
+      {% for name in catalog.keys() %}
+      <option value="{{ name }}">{{ name }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Quantity
+    <input type="number" id="quantity" name="quantity" min="1" step="1" value="1" required>
+  </label>
+
+  <p>Unit Price: $<span id="unit_price">0.00</span></p>
+  <p>Line Total: $<span id="line_total">0.00</span></p>
+
+  <button type="submit">Save Order</button>
+</form>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+<script>
+  const thecatalog = {{ catalog | tojson}}
+  setupPricing(thecatalog);
+</script>
+
+<hr />
+
+<h2>My Orders</h2>
+<table class="no-border">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Item</th>
+      <th>Qty</th>
+      <th>Unit Price</th>
+      <th>Line Total</th>
+      <th>Last Updated</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for o in orders %}
+    <tr>
+      <td>{{ o.created_at }}</td>
+      <td>{{ o.item }}</td>
+      <td>{{ o.quantity }}</td>
+      <td>${{ "%.2f"|format(o.unit_price|float) }}</td>
+      <td>${{ "%.2f"|format(o.line_total|float) }}</td>
+      <td>{{ o.updated_at }}</td>
+      <td class="no-stripe">
+        <form method="post" action="{{ url_for('edit_order', order_id=o.order_id) }}" style="display:inline"
+          class="no-border">
+          <input type="hidden" name="quantity" value="{{ o.quantity }}" />
+          <button name="action" value="inc">+1</button>
+          <button name="action" value="dec">-1</button>
+        </form>
+        <form method="post" action="{{ url_for('delete_order', order_id=o.order_id) }}" style="display:inline"
+          onsubmit="return confirm('Delete this order?')" class="no-border">
+          <button>Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="3" style="text-align:right"><strong>Total:</strong></td>
+      <td><strong>${{ "%.2f"|format(total_amount|float) }}</strong></td>
+    </tr>
+  </tfoot>
+</table>
+{% endblock %}
