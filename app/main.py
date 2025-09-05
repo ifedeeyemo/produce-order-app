@@ -1,7 +1,6 @@
-import os, uuid, datetime,json
+import os, uuid, datetime, json, re
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
-from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 
 import gspread
@@ -16,22 +15,22 @@ app = Flask(__name__, template_folder=template_folder)
 load_dotenv()
 
 GOOGLE_SPREADSHEET_ID = os.getenv("GOOGLE_SPREADSHEET_ID")
+#GOOGLE_APP_CREDS = os.getenv("GOOGLE_APP_CREDS")
 creds_json = os.getenv("GOOGLE_APP_CREDS_JSON")
 creds_dict = json.loads(creds_json)
-#GOOGLE_APP_CREDS = os.getenv("GOOGLE_APP_CREDS")
-FLASK_SECRET_KEY = os.getenv("FLASK_SECRET_KEY","allaboutourpeppers")
+FLASK_SECRET_KEY = os.getenv("FLASK_SECRET_KEY", "allaboutourpeppers")
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "")
 
 if not GOOGLE_SPREADSHEET_ID:
     raise RuntimeError("SPREADSHEET_ID is required in .env")
-#if not GOOGLE_APP_CREDS or not os.path.exists(GOOGLE_APP_CREDS):
-    raise RuntimeError("GOOGLE_APPLICATION_CREDENTIALS path invalid or missing.")
 
+#if not GOOGLE_APP_CREDS or not os.path.exists(GOOGLE_APP_CREDS):
+  #  raise RuntimeError("GOOGLE_APPLICATION_CREDENTIALS missing or invalid")
 if not creds_dict:
-    raise RuntimeError("GOOGLE_APPLICATION_CREDENTIALS path invalid or missing.")
+     raise RuntimeError("GOOGLE_APPLICATION_CREDENTIALS missing or invalid")
 
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
-#creds = Credentials.from_service_account_file(GOOGLE_APP_CREDS, scopes=SCOPES)
 gc = gspread.authorize(creds)
 ss = gc.open_by_key(GOOGLE_SPREADSHEET_ID)
 
@@ -43,7 +42,6 @@ def get_or_create_ws(sheetname, headers):
         ws = ss.add_worksheet(title=sheetname, rows=1000, cols=len(headers))
         ws.append_row(headers)
         return ws
-    # ensure headers
     existing = ws.row_values(1)
     if [h.lower() for h in existing] != [h.lower() for h in headers]:
         if existing:
@@ -52,9 +50,9 @@ def get_or_create_ws(sheetname, headers):
     return ws
 
 # -------------------- Headers --------------------
-CUSTOMER_SHEET_HEADERS = ["username","email","password_hash","role","created_at"]
-PRODUCE_SHEET_HEADERS = ["item","unit_price"]
-ORDERS_SHEET_HEADERS = ["order_id","username","item","quantity","unit_price","line_total","created_at","updated_at"]
+CUSTOMER_SHEET_HEADERS = ["username", "firstname", "lastname", "phone", "email", "role", "created_at"]
+PRODUCE_SHEET_HEADERS = ["item", "unit_price"]
+ORDERS_SHEET_HEADERS = ["order_id", "username", "item", "quantity", "unit_price", "line_total", "created_at", "updated_at"]
 
 customer_ws = get_or_create_ws("customers", CUSTOMER_SHEET_HEADERS)
 produce_ws = get_or_create_ws("produce", PRODUCE_SHEET_HEADERS)
@@ -126,47 +124,59 @@ def inject_now():
     return {'datetime': datetime.datetime}
 
 # -------------------- Routes: Auth --------------------
+CANADIAN_PHONE_REGEX = r'^\(?([2-9][0-9]{2})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})$'
+
 @app.route("/register", methods=["GET","POST"])
 def register():
     if request.method == "POST":
         username = request.form.get("username","").strip()
+        firstname = request.form.get("firstname","").strip()
+        lastname = request.form.get("lastname","").strip()
+        phone = request.form.get("phone","").strip()
         email = request.form.get("email","").strip().lower()
-        pw = request.form.get("password","")
-        confirm_pw = request.form.get("confirm_password","")
 
-        if not username or not pw or not confirm_pw:
-            flash("Username and password required","error")
-            return redirect(url_for("register"))
-        if pw != confirm_pw:
-            flash("Passwords do not match","error")
+        # Validate mandatory fields
+        if not username or not firstname or not lastname or not phone or not email:
+            flash("All fields are required","error")
             return redirect(url_for("register"))
 
+        # Validate email
+        if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+            flash("Invalid email format","error")
+            return redirect(url_for("register"))
+
+        # Validate Canadian phone
+        if not re.match(CANADIAN_PHONE_REGEX, phone):
+            flash("Invalid Canadian phone number format","error")
+            return redirect(url_for("register"))
+
+        # Check uniqueness of username
         existing = ws_rows_to_dicts(customer_ws, CUSTOMER_SHEET_HEADERS)
         if any(u["username"].lower() == username.lower() for u in existing):
             flash("Username already taken","error")
             return redirect(url_for("register"))
 
-        role = "Customer"  # default role
-        customer_ws.append_row([username, email, generate_password_hash(pw), role, now_iso()])
+        role = "Admin" if (ADMIN_USERNAME and username.lower() == ADMIN_USERNAME.lower()) else "Customer"
+        created_at = now_iso()
+
+        customer_ws.append_row([username, firstname, lastname, phone, email, role, created_at])
         flash("Registration successful. Please login.","success")
         return redirect(url_for("login"))
+
     return render_template("register.html")
 
 @app.route("/login", methods=["GET","POST"])
 def login():
     if request.method == "POST":
         username = request.form.get("username","").strip()
-        pw = request.form.get("password","")
         rows = ws_rows_to_dicts(customer_ws, CUSTOMER_SHEET_HEADERS)
         for u in rows:
             if u["username"].lower() == username.lower():
-                if check_password_hash(u["password_hash"], pw):
-                    user = User(u["username"], u.get("role","Customer"))
-                    login_user(user)
-                    flash("Logged in","success")
-                    return redirect(url_for("index"))
-                break
-        flash("Invalid credentials","error")
+                user = User(u["username"], u.get("role","Customer"))
+                login_user(user)
+                flash("Logged in","success")
+                return redirect(url_for("index"))
+        flash("Invalid username","error")
         return redirect(url_for("login"))
     return render_template("login.html")
 
@@ -202,12 +212,11 @@ def create_order():
         return redirect(url_for("index"))
 
     now = now_iso()
-    orders_ws.append_row([
-        str(uuid.uuid4()), current_user.id, item, str(int(float(qty))), f"{unit:.2f}", f"{total:.2f}", now, now
-    ])
+    orders_ws.append_row([str(uuid.uuid4()), current_user.id, item, str(int(float(qty))), f"{unit:.2f}", f"{total:.2f}", now, now])
     flash("Order saved","success")
     return redirect(url_for("index"))
 
+# -------------------- Edit/Delete Orders --------------------
 @app.route("/orders/<order_id>/edit", methods=["POST"])
 @login_required
 def edit_order(order_id):
@@ -217,24 +226,19 @@ def edit_order(order_id):
         flash("Order not found","error"); return redirect(url_for("index"))
     row_num, raw = row_map[order_id]
     owner = raw[idx["username"]]
-    if (owner or "").lower() != current_user.id.lower() and not current_user.is_admin:
+    if owner.lower() != current_user.id.lower() and not current_user.is_admin:
         flash("Not allowed","error"); return redirect(url_for("index"))
 
     d = {h: (raw[idx[h]] if idx[h]<len(raw) else "") for h in ORDERS_SHEET_HEADERS}
     qty = int(d.get("quantity","1") or "1")
-    if action == "inc":
-        qty += 1
-    elif action == "dec":
-        qty = max(1, qty-1)
-
+    if action == "inc": qty += 1
+    elif action == "dec": qty = max(1, qty-1)
     unit, total = compute_line_total(d.get("item",""), qty)
     d["quantity"] = str(qty)
     d["unit_price"] = f"{unit:.2f}"
     d["line_total"] = f"{total:.2f}"
     d["updated_at"] = now_iso()
-
-    new_row = [d.get(h,"") for h in ORDERS_SHEET_HEADERS]
-    orders_ws.update(f"A{row_num}:H{row_num}", [new_row])
+    orders_ws.update(f"A{row_num}:H{row_num}", [[d.get(h,"") for h in ORDERS_SHEET_HEADERS]])
     flash("Order updated","success")
     return redirect(url_for("index"))
 
@@ -246,19 +250,18 @@ def delete_order(order_id):
         flash("Order not found","error"); return redirect(url_for("index"))
     row_num, raw = row_map[order_id]
     owner = raw[idx["username"]]
-    if (owner or "").lower() != current_user.id.lower() and not current_user.is_admin:
+    if owner.lower() != current_user.id.lower() and not current_user.is_admin:
         flash("Not allowed","error"); return redirect(url_for("index"))
     orders_ws.delete_rows(row_num)
     flash("Order deleted","success")
     return redirect(url_for("index"))
 
-# -------------------- Routes: Admin --------------------
+# -------------------- Admin Report --------------------
 @app.route("/admin/report")
 @login_required
 def admin_report():
     if not current_user.is_admin:
-        flash("Admin only","error")
-        return redirect(url_for("index"))
+        flash("Admin only","error"); return redirect(url_for("index"))
     orders = ws_rows_to_dicts(orders_ws, ORDERS_SHEET_HEADERS)
     for o in orders:
         o["quantity"] = int(float(o.get("quantity","0") or "0"))
@@ -266,7 +269,7 @@ def admin_report():
         o["line_total"] = float(o.get("line_total","0") or "0")
     totals_by_user = {}
     for o in orders:
-        totals_by_user[o["username"]] = totals_by_user.get(o["username"], 0.0) + float(o["line_total"])
+        totals_by_user[o["username"]] = totals_by_user.get(o["username"],0.0)+float(o["line_total"])
     grand_total = sum(totals_by_user.values())
     orders.sort(key=lambda x: (x.get("username",""), x.get("created_at","")), reverse=False)
     return render_template("admin_report.html", orders=orders, totals_by_customer=totals_by_user, grand_total=grand_total)
