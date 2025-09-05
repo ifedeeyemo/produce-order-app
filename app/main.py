@@ -1,4 +1,4 @@
-import os, uuid, datetime
+import os, uuid, datetime,json
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -16,16 +16,22 @@ app = Flask(__name__, template_folder=template_folder)
 load_dotenv()
 
 GOOGLE_SPREADSHEET_ID = os.getenv("GOOGLE_SPREADSHEET_ID")
-GOOGLE_APP_CREDS = os.getenv("GOOGLE_APP_CREDS")
+creds_json = os.getenv("GOOGLE_APP_CREDS_JSON")
+creds_dict = json.loads(creds_json)
+#GOOGLE_APP_CREDS = os.getenv("GOOGLE_APP_CREDS")
 FLASK_SECRET_KEY = os.getenv("FLASK_SECRET_KEY","allaboutourpeppers")
 
 if not GOOGLE_SPREADSHEET_ID:
     raise RuntimeError("SPREADSHEET_ID is required in .env")
-if not GOOGLE_APP_CREDS or not os.path.exists(GOOGLE_APP_CREDS):
+#if not GOOGLE_APP_CREDS or not os.path.exists(GOOGLE_APP_CREDS):
+    raise RuntimeError("GOOGLE_APPLICATION_CREDENTIALS path invalid or missing.")
+
+if not creds_dict:
     raise RuntimeError("GOOGLE_APPLICATION_CREDENTIALS path invalid or missing.")
 
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-creds = Credentials.from_service_account_file(GOOGLE_APP_CREDS, scopes=SCOPES)
+creds = Credentials.from_service_account_file(creds_dict, scopes=SCOPES)
+#creds = Credentials.from_service_account_file(GOOGLE_APP_CREDS, scopes=SCOPES)
 gc = gspread.authorize(creds)
 ss = gc.open_by_key(GOOGLE_SPREADSHEET_ID)
 
